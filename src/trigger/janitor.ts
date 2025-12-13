@@ -1,6 +1,6 @@
 import { task, schedules } from "@trigger.dev/sdk/v3";
 import { db } from "@/lib/db";
-import { clusterContent, synthesizeContent } from "@/lib/ai";
+import { clusterContent, synthesizeContent, SynthesisResult } from "@/lib/ai";
 import { generateEmbedding } from "@/lib/embeddings";
 import { querySimilar } from "@/lib/pinecone";
 
@@ -150,7 +150,7 @@ export const summarizeRegion = task({
   run: async (payload: { canvasId: string; regionId: string; content: string }) => {
     const { canvasId, regionId, content } = payload;
     
-    const result = await synthesizeContent(content);
+    const result = await synthesizeContent(content) as SynthesisResult;
 
     // Update the region with the summary
     await db.canvasRegion.update({
