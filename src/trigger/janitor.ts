@@ -170,7 +170,7 @@ export const summarizeRegion = task({
         type: "SUMMARIZE",
         status: "COMPLETED",
         input: { content: content.substring(0, 500) },
-        output: result,
+        output: result as object,
         completedAt: new Date(),
       },
     });
