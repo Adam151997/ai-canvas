@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { db } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 
 // GET /api/canvas/[canvasId]/snapshot - Get canvas snapshot
 export async function GET(
@@ -145,7 +146,7 @@ export async function PUT(
 
   try {
     const body = await req.json();
-    const { activityId, timestamp } = body;
+    const { activityId } = body;
 
     // Check access
     const canvas = await db.canvas.findUnique({
@@ -170,7 +171,7 @@ export async function PUT(
     }
 
     // If activityId provided, restore to that point
-    let targetSnapshot = null;
+    let targetSnapshot: Prisma.InputJsonValue | null = null;
 
     if (activityId) {
       const activity = await db.activity.findUnique({
@@ -179,7 +180,7 @@ export async function PUT(
       });
 
       if (activity?.snapshotAfter) {
-        targetSnapshot = activity.snapshotAfter;
+        targetSnapshot = activity.snapshotAfter as Prisma.InputJsonValue;
       }
     }
 
@@ -191,17 +192,19 @@ export async function PUT(
     }
 
     // Save current state before time travel
+    const currentSnapshotData = canvas.snapshotData as Prisma.InputJsonValue | undefined;
+    
     await db.activity.create({
       data: {
         canvasId,
         userId: user.id,
-        type: "SHAPE_UPDATED",
+        type: "SNAPSHOT_RESTORED",
         data: {
           action: "time_travel",
           description: "Reverted to previous state",
           targetActivityId: activityId,
         },
-        snapshotBefore: canvas.snapshotData,
+        snapshotBefore: currentSnapshotData,
         snapshotAfter: targetSnapshot,
       },
     });
@@ -218,7 +221,6 @@ export async function PUT(
 
     return NextResponse.json({
       success: true,
-      message: "Canvas restored to selected point in time",
       snapshot: targetSnapshot,
     });
   } catch (error) {
