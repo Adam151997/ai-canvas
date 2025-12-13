@@ -1,0 +1,393 @@
+@import "tailwindcss";
+
+/* ============================================ */
+/* CSS Variables - Light Theme (Default) */
+/* ============================================ */
+
+:root {
+  --color-background: #fafafa;
+  --color-foreground: #18181b;
+  
+  --color-card: #ffffff;
+  --color-card-foreground: #18181b;
+  
+  --color-popover: #ffffff;
+  --color-popover-foreground: #18181b;
+  
+  --color-primary: #2563eb;
+  --color-primary-foreground: #ffffff;
+  
+  --color-secondary: #f4f4f5;
+  --color-secondary-foreground: #18181b;
+  
+  --color-muted: #f4f4f5;
+  --color-muted-foreground: #71717a;
+  
+  --color-accent: #f4f4f5;
+  --color-accent-foreground: #18181b;
+  
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #ffffff;
+  
+  --color-success: #16a34a;
+  --color-success-foreground: #ffffff;
+  --color-warning: #d97706;
+  --color-warning-foreground: #ffffff;
+  
+  --color-border: #e4e4e7;
+  --color-input: #e4e4e7;
+  --color-ring: #2563eb;
+  
+  /* Canvas - Light */
+  --color-canvas-bg: #f8fafc;
+  --color-canvas-dot: #d4d4d8;
+  
+  /* Radius - Compact */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-full: 9999px;
+}
+
+/* ============================================ */
+/* CSS Variables - Dark Theme */
+/* ============================================ */
+
+.dark {
+  --color-background: #09090b;
+  --color-foreground: #fafafa;
+  
+  --color-card: #18181b;
+  --color-card-foreground: #fafafa;
+  
+  --color-popover: #18181b;
+  --color-popover-foreground: #fafafa;
+  
+  --color-primary: #3b82f6;
+  --color-primary-foreground: #ffffff;
+  
+  --color-secondary: #27272a;
+  --color-secondary-foreground: #fafafa;
+  
+  --color-muted: #27272a;
+  --color-muted-foreground: #a1a1aa;
+  
+  --color-accent: #27272a;
+  --color-accent-foreground: #fafafa;
+  
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #fafafa;
+  
+  --color-success: #22c55e;
+  --color-success-foreground: #ffffff;
+  --color-warning: #f59e0b;
+  --color-warning-foreground: #ffffff;
+  
+  --color-border: #27272a;
+  --color-input: #27272a;
+  --color-ring: #3b82f6;
+  
+  /* Canvas - Dark Railway Style */
+  --color-canvas-bg: #09090b;
+  --color-canvas-dot: #27272a;
+}
+
+/* ============================================ */
+/* Tailwind v4 Theme Block */
+/* ============================================ */
+
+@theme {
+  --color-background: var(--color-background);
+  --color-foreground: var(--color-foreground);
+  --color-card: var(--color-card);
+  --color-card-foreground: var(--color-card-foreground);
+  --color-primary: var(--color-primary);
+  --color-primary-foreground: var(--color-primary-foreground);
+  --color-secondary: var(--color-secondary);
+  --color-secondary-foreground: var(--color-secondary-foreground);
+  --color-muted: var(--color-muted);
+  --color-muted-foreground: var(--color-muted-foreground);
+  --color-accent: var(--color-accent);
+  --color-accent-foreground: var(--color-accent-foreground);
+  --color-destructive: var(--color-destructive);
+  --color-destructive-foreground: var(--color-destructive-foreground);
+  --color-border: var(--color-border);
+  --color-input: var(--color-input);
+  --color-ring: var(--color-ring);
+  
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-full: 9999px;
+  
+  --animate-fade-in: fade-in 0.15s ease-out;
+  --animate-slide-up: slide-up 0.2s ease-out;
+  --animate-slide-down: slide-down 0.2s ease-out;
+}
+
+/* ============================================ */
+/* Keyframe Animations */
+/* ============================================ */
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* ============================================ */
+/* Global Styles - Minimal & Clean */
+/* ============================================ */
+
+* {
+  box-sizing: border-box;
+  border-color: var(--color-border);
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================ */
+/* TLDRAW STYLES - Railway Dark Canvas Style */
+/* ============================================ */
+
+.tldraw-editor {
+  position: absolute !important;
+  inset: 0 !important;
+}
+
+.tl-container {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Canvas Background with Dot Grid Pattern */
+.tl-background {
+  background-color: var(--color-canvas-bg) !important;
+  background-image: radial-gradient(var(--color-canvas-dot) 1px, transparent 1px) !important;
+  background-size: 24px 24px !important;
+}
+
+/* Hide all default Tldraw UI */
+.tlui-layout__top,
+.tlui-layout__bottom,
+.tlui-navigation-zone,
+.tlui-style-panel__wrapper,
+.tlui-debug-panel,
+.tlui-help-menu,
+.tlui-menu-zone {
+  display: none !important;
+}
+
+/* Override Tldraw theme for dark mode */
+.dark .tl-theme__light,
+.dark .tl-theme__dark {
+  --color-background: var(--color-canvas-bg);
+  --color-text: var(--color-foreground);
+  --color-text-0: #fafafa;
+  --color-text-1: #a1a1aa;
+  --color-text-2: #71717a;
+  --color-panel: var(--color-card);
+  --color-low: #18181b;
+  --color-muted-0: #27272a;
+  --color-muted-1: #3f3f46;
+  --color-divider: #27272a;
+  --color-focus: #3b82f6;
+  --color-selected: rgba(59, 130, 246, 0.12);
+  --color-brush-fill: rgba(59, 130, 246, 0.08);
+  --color-brush-stroke: rgba(59, 130, 246, 0.4);
+}
+
+.light .tl-theme__light {
+  --color-background: var(--color-canvas-bg);
+  --color-panel: var(--color-card);
+  --color-brush-fill: rgba(37, 99, 235, 0.08);
+  --color-brush-stroke: rgba(37, 99, 235, 0.4);
+}
+
+/* ============================================ */
+/* Compact Scrollbar */
+/* ============================================ */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-muted-foreground);
+  opacity: 0.3;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  opacity: 0.5;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #52525b;
+}
+
+/* ============================================ */
+/* Compact Connection Status */
+/* ============================================ */
+
+.connection-status {
+  position: fixed;
+  top: 0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  backdrop-filter: blur(8px);
+}
+
+.connection-status.online {
+  background-color: rgba(22, 163, 74, 0.1);
+  color: #16a34a;
+  border: 1px solid rgba(22, 163, 74, 0.2);
+}
+
+.connection-status.offline {
+  background-color: rgba(220, 38, 38, 0.1);
+  color: #dc2626;
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.connection-status.reconnecting {
+  background-color: rgba(217, 119, 6, 0.1);
+  color: #d97706;
+  border: 1px solid rgba(217, 119, 6, 0.2);
+}
+
+/* ============================================ */
+/* Animation Utilities */
+/* ============================================ */
+
+.animate-fade-in {
+  animation: fade-in 0.15s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.2s ease-out;
+}
+
+.animate-slide-down {
+  animation: slide-down 0.2s ease-out;
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s ease-in-out infinite;
+}
+
+/* ============================================ */
+/* Compact Panel Glow Effects */
+/* ============================================ */
+
+.janitor-glow {
+  box-shadow: 0 0 16px rgba(139, 92, 246, 0.2);
+}
+
+.ghost-glow {
+  box-shadow: 0 0 16px rgba(6, 182, 212, 0.2);
+}
+
+/* ============================================ */
+/* Loading Shimmer Effect */
+/* ============================================ */
+
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+
+/* ============================================ */
+/* Smooth Theme Transitions */
+/* ============================================ */
+
+html {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Disable transitions on load */
+.no-transitions * {
+  transition: none !important;
+}
+
+/* ============================================ */
+/* Focus States - Minimal */
+/* ============================================ */
+
+:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+}
+
+/* ============================================ */
+/* Selection Colors */
+/* ============================================ */
+
+::selection {
+  background-color: rgba(37, 99, 235, 0.2);
+  color: inherit;
+}
+
+.dark ::selection {
+  background-color: rgba(59, 130, 246, 0.3);
+}

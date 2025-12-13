@@ -1,0 +1,351 @@
+// AI Canvas - Prisma Schema
+// This schema defines the database structure for the AI Canvas application
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// User & Organization Models
+// ============================================
+
+model User {
+  id            String    @id // Clerk user ID
+  email         String    @unique
+  name          String?
+  avatarUrl     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  canvases      Canvas[]
+  memberships   CanvasMember[]
+  comments      Comment[]
+  activities    Activity[]
+  aiRequests    AIRequest[]
+  assets        Asset[]
+
+  @@map("users")
+}
+
+// ============================================
+// Canvas Models
+// ============================================
+
+model Canvas {
+  id            String    @id @default(cuid())
+  name          String    @default("Untitled Canvas")
+  description   String?
+  thumbnail     String?   // URL to thumbnail image
+  isPublic      Boolean   @default(false)
+  
+  // Liveblocks room ID (usually "canvas-{id}")
+  roomId        String    @unique
+  
+  // Owner
+  ownerId       String
+  owner         User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  
+  // Metadata
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastAccessedAt DateTime @default(now())
+  
+  // Canvas state (for backup/restore)
+  snapshotData  Json?     // Serialized Tldraw state
+  snapshotAt    DateTime?
+
+  // Relations
+  members       CanvasMember[]
+  comments      Comment[]
+  activities    Activity[]
+  aiRequests    AIRequest[]
+  assets        Asset[]
+  regions       CanvasRegion[]
+
+  @@index([ownerId])
+  @@index([updatedAt])
+  @@map("canvases")
+}
+
+model CanvasMember {
+  id        String   @id @default(cuid())
+  canvasId  String
+  canvas    Canvas   @relation(fields: [canvasId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  role      CanvasRole @default(EDITOR)
+  
+  invitedAt DateTime @default(now())
+  joinedAt  DateTime?
+
+  @@unique([canvasId, userId])
+  @@index([userId])
+  @@map("canvas_members")
+}
+
+enum CanvasRole {
+  VIEWER    // Can view only
+  EDITOR    // Can edit
+  ADMIN     // Can edit + manage members
+}
+
+// ============================================
+// Canvas Regions (for AI Janitor)
+// ============================================
+
+model CanvasRegion {
+  id          String   @id @default(cuid())
+  canvasId    String
+  canvas      Canvas   @relation(fields: [canvasId], references: [id], onDelete: Cascade)
+  
+  // Bounding box
+  x           Float
+  y           Float
+  width       Float
+  height      Float
+  
+  // AI-generated metadata
+  label       String?           // AI-detected topic label
+  summary     String?           // AI-generated summary
+  keywords    String[]          // Extracted keywords
+  
+  // Clustering
+  clusterId   String?           // ID of semantic cluster
+  
+  // Activity tracking (for decay/patina)
+  lastActivity DateTime @default(now())
+  activityScore Float   @default(1.0)  // Decays over time
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([canvasId])
+  @@index([clusterId])
+  @@map("canvas_regions")
+}
+
+// ============================================
+// Comments (Spatial Chat)
+// ============================================
+
+model Comment {
+  id          String   @id @default(cuid())
+  canvasId    String
+  canvas      Canvas   @relation(fields: [canvasId], references: [id], onDelete: Cascade)
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  
+  // Position on canvas
+  x           Float
+  y           Float
+  
+  // Attached to a specific shape (optional)
+  shapeId     String?
+  
+  // Thread structure
+  parentId    String?
+  parent      Comment? @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies     Comment[] @relation("CommentReplies")
+  
+  // Content
+  content     String
+  resolved    Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([canvasId])
+  @@index([shapeId])
+  @@index([parentId])
+  @@map("comments")
+}
+
+// ============================================
+// Assets (Files, Images, PDFs)
+// ============================================
+
+model Asset {
+  id            String    @id @default(cuid())
+  canvasId      String
+  canvas        Canvas    @relation(fields: [canvasId], references: [id], onDelete: Cascade)
+  
+  // Uploader
+  uploaderId    String
+  uploader      User      @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
+  
+  // File info
+  filename      String
+  mimeType      String
+  size          Int       // bytes
+  
+  // Storage
+  url           String    // Vercel Blob URL
+  thumbnailUrl  String?   // Generated thumbnail
+  
+  // Processing status
+  status        AssetStatus @default(PENDING)
+  processedAt   DateTime?
+  
+  // Extracted data
+  extractedText String?   // OCR or PDF text
+  metadata      Json?     // Additional metadata (dimensions, pages, etc.)
+  
+  // Position on canvas (optional)
+  shapeId       String?
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([canvasId])
+  @@index([uploaderId])
+  @@index([status])
+  @@map("assets")
+}
+
+enum AssetStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+// ============================================
+// AI Requests (Janitor Operations)
+// ============================================
+
+model AIRequest {
+  id          String       @id @default(cuid())
+  canvasId    String?
+  canvas      Canvas?      @relation(fields: [canvasId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Request details
+  type        String        // Type of AI request
+  model       String?       // Model used
+  input       Json?         // Input data for the AI
+  
+  // Token tracking
+  inputTokens  Int     @default(0)
+  outputTokens Int     @default(0)
+  totalTokens  Int     @default(0)
+  cost         Float   @default(0)
+  
+  // Performance
+  latencyMs    Int     @default(0)
+  
+  // Response
+  status      AIRequestStatus @default(PENDING)
+  output      Json?         // AI response
+  error       String?
+  metadata    Json?         // Additional metadata
+  
+  createdAt   DateTime @default(now())
+  completedAt DateTime?
+
+  @@index([canvasId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("ai_requests")
+}
+
+enum AIRequestType {
+  SUMMARIZE       // Summarize a region
+  CLUSTER         // Semantic clustering
+  SUGGEST_LAYOUT  // Auto-complete flowcharts
+  EXTRACT_TEXT    // OCR
+  GENERATE_TAGS   // Auto-tagging
+  SEARCH          // Semantic search
+  SYNTHESIZE      // General synthesis
+  EMBEDDING       // Generate embedding
+}
+
+enum AIRequestStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+// ============================================
+// Activity Log (For Ghost Replays)
+// ============================================
+
+model Activity {
+  id          String   @id @default(cuid())
+  canvasId    String
+  canvas      Canvas   @relation(fields: [canvasId], references: [id], onDelete: Cascade)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Activity type
+  type        ActivityType
+  
+  // What changed
+  shapeId     String?           // Affected shape
+  data        Json?             // Additional data (diff, old/new values, bookmarked flag)
+  
+  // Snapshot reference (for replay)
+  snapshotBefore Json?          // State before change
+  snapshotAfter  Json?          // State after change
+  
+  createdAt   DateTime @default(now())
+
+  @@index([canvasId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("activities")
+}
+
+enum ActivityType {
+  SHAPE_CREATED
+  SHAPE_UPDATED
+  SHAPE_DELETED
+  COMMENT_ADDED
+  COMMENT_RESOLVED
+  ASSET_UPLOADED
+  AI_SYNTHESIS
+  CANVAS_RENAMED
+  MEMBER_ADDED
+  MEMBER_REMOVED
+  SNAPSHOT_RESTORED
+}
+
+// ============================================
+// Vector Embeddings (for Pinecone sync)
+// ============================================
+
+model Embedding {
+  id          String   @id @default(cuid())
+  
+  // Reference to source
+  sourceType  EmbeddingSource
+  sourceId    String            // ID of the source object
+  canvasId    String
+  
+  // Vector data (stored in Pinecone, this is metadata)
+  pineconeId  String   @unique  // ID in Pinecone
+  text        String            // Original text that was embedded
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sourceType, sourceId])
+  @@index([canvasId])
+  @@map("embeddings")
+}
+
+enum EmbeddingSource {
+  COMMENT
+  ASSET
+  REGION
+  SHAPE_TEXT    // Text content of shapes
+}
