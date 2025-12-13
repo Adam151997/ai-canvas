@@ -45,8 +45,8 @@ export function ExportPanel({ editor, canvasId, canvasName = "canvas", onClose }
     if (!editor) return;
     setIsExporting("svg");
     try {
-      const svg = await exportToSVG(editor);
-      if (svg) downloadText(svg, `${canvasName}-${canvasId}.svg`, "image/svg+xml");
+      const blob = await exportToSVG(editor);
+      if (blob) downloadBlob(blob, `${canvasName}-${canvasId}.svg`);
     } finally {
       setIsExporting(null);
     }
