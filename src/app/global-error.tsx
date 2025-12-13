@@ -1,6 +1,5 @@
 "use client";
 
-import * as Sentry from "@sentry/nextjs";
 import { useEffect } from "react";
 import { AlertTriangle, RefreshCw, Home } from "lucide-react";
 import Link from "next/link";
@@ -13,8 +12,8 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log the error to Sentry
-    Sentry.captureException(error);
+    // Log the error to console (Sentry disabled)
+    console.error("Global error:", error);
   }, [error]);
 
   return (
@@ -32,7 +31,7 @@ export default function GlobalError({
               Something went wrong
             </h1>
             <p className="mb-6 text-gray-600">
-              We've been notified and are working to fix the issue. Please try again.
+              We have been notified and are working to fix the issue. Please try again.
             </p>
 
             {/* Error Details (development only) */}
