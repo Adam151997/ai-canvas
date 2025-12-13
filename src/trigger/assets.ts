@@ -5,6 +5,7 @@ import { upsertVectors, VectorMetadata } from "@/lib/pinecone";
 import { put } from "@vercel/blob";
 import sharp from "sharp";
 
+
 // Thumbnail generation
 async function createThumbnail(
   imageBuffer: Buffer,
@@ -186,7 +187,7 @@ export const processAsset = task({
           status: "COMPLETED",
           extractedText: extractedText ? extractedText.substring(0, 50000) : null, // Limit stored text
           thumbnailUrl,
-          metadata,
+          metadata: metadata as object,
           processedAt: new Date(),
         },
       });
