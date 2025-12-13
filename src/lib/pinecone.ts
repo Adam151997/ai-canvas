@@ -1,4 +1,4 @@
-import { Pinecone, RecordMetadata } from "@pinecone-database/pinecone";
+import { Pinecone } from "@pinecone-database/pinecone";
 
 // Initialize Pinecone client
 const pinecone = new Pinecone({
@@ -10,14 +10,15 @@ export const getIndex = () => {
   return pinecone.index(process.env.PINECONE_INDEX_NAME || "ai-canvas");
 };
 
-// Types for vector operations - extends RecordMetadata for Pinecone compatibility
-export interface VectorMetadata extends RecordMetadata {
+// Types for vector operations
+export interface VectorMetadata {
   canvasId: string;
-  sourceType: "comment" | "asset" | "region" | "shape_text";
+  sourceType: string; // "comment" | "asset" | "region" | "shape_text"
   sourceId: string;
   text: string;
-  userId?: string;
+  userId: string;
   createdAt: string;
+  [key: string]: string; // Index signature for Pinecone compatibility
 }
 
 // Upsert vectors to Pinecone
@@ -43,7 +44,7 @@ export async function querySimilar(
   embedding: number[],
   options: {
     canvasId?: string;
-    sourceType?: VectorMetadata["sourceType"];
+    sourceType?: string;
     topK?: number;
   } = {}
 ) {
