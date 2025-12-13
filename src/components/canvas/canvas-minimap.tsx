@@ -1,14 +1,13 @@
 "use client";
 
 import { useEditor, useValue } from "tldraw";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { Map, ZoomIn, ZoomOut, Maximize2 } from "lucide-react";
 
 export function CanvasMinimap() {
   const editor = useEditor();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isExpanded, setIsExpanded] = useState(false);
 
   // Get reactive values from editor
   const camera = useValue("camera", () => editor.getCamera(), [editor]);
@@ -41,19 +40,16 @@ export function CanvasMinimap() {
       return;
     }
 
-    // Calculate bounds of all shapes
+    // Calculate bounds of all shapes using getShapePageBounds
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     
     for (const shape of allShapes) {
-      const bounds = editor.getShapeGeometry(shape).bounds;
-      const pagePoint = editor.getShapePageTransform(shape);
-      if (pagePoint) {
-        const x = pagePoint.x();
-        const y = pagePoint.y();
-        minX = Math.min(minX, x);
-        minY = Math.min(minY, y);
-        maxX = Math.max(maxX, x + bounds.width);
-        maxY = Math.max(maxY, y + bounds.height);
+      const pageBounds = editor.getShapePageBounds(shape);
+      if (pageBounds) {
+        minX = Math.min(minX, pageBounds.x);
+        minY = Math.min(minY, pageBounds.y);
+        maxX = Math.max(maxX, pageBounds.x + pageBounds.width);
+        maxY = Math.max(maxY, pageBounds.y + pageBounds.height);
       }
     }
 
@@ -78,14 +74,13 @@ export function CanvasMinimap() {
 
     // Draw shapes as dots/rectangles
     for (const shape of allShapes) {
-      const bounds = editor.getShapeGeometry(shape).bounds;
-      const pagePoint = editor.getShapePageTransform(shape);
-      if (!pagePoint) continue;
+      const pageBounds = editor.getShapePageBounds(shape);
+      if (!pageBounds) continue;
 
-      const x = pagePoint.x() * scale + offsetX;
-      const y = pagePoint.y() * scale + offsetY;
-      const w = Math.max(bounds.width * scale, 2);
-      const h = Math.max(bounds.height * scale, 2);
+      const x = pageBounds.x * scale + offsetX;
+      const y = pageBounds.y * scale + offsetY;
+      const w = Math.max(pageBounds.width * scale, 2);
+      const h = Math.max(pageBounds.height * scale, 2);
 
       // Color based on shape type
       switch (shape.type) {
@@ -115,7 +110,6 @@ export function CanvasMinimap() {
     }
 
     // Draw viewport rectangle
-    const viewportScreenBounds = editor.getViewportScreenBounds();
     const viewportPageBounds = editor.getViewportPageBounds();
     
     const vx = viewportPageBounds.x * scale + offsetX;
@@ -153,15 +147,12 @@ export function CanvasMinimap() {
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     
     for (const shape of allShapes) {
-      const bounds = editor.getShapeGeometry(shape).bounds;
-      const pagePoint = editor.getShapePageTransform(shape);
-      if (pagePoint) {
-        const x = pagePoint.x();
-        const y = pagePoint.y();
-        minX = Math.min(minX, x);
-        minY = Math.min(minY, y);
-        maxX = Math.max(maxX, x + bounds.width);
-        maxY = Math.max(maxY, y + bounds.height);
+      const pageBounds = editor.getShapePageBounds(shape);
+      if (pageBounds) {
+        minX = Math.min(minX, pageBounds.x);
+        minY = Math.min(minY, pageBounds.y);
+        maxX = Math.max(maxX, pageBounds.x + pageBounds.width);
+        maxY = Math.max(maxY, pageBounds.y + pageBounds.height);
       }
     }
 
@@ -194,7 +185,7 @@ export function CanvasMinimap() {
   const handleZoomOut = () => editor?.zoomOut();
   const handleFitAll = () => editor?.zoomToFit();
 
-  const size = isExpanded ? { width: 200, height: 150 } : { width: 140, height: 100 };
+  const size = { width: 140, height: 100 };
 
   return (
     <div 
