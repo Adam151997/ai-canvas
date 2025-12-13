@@ -1,8 +1,7 @@
 import { task } from "@trigger.dev/sdk/v3";
 import { generateEmbedding, prepareTextForEmbedding } from "@/lib/embeddings";
 import { upsertVectors, VectorMetadata } from "@/lib/pinecone";
-import { prisma } from "@/lib/db";
-import { nanoid } from "nanoid";
+import { db } from "@/lib/db";
 
 // Task: Generate embeddings for canvas content
 export const generateCanvasEmbeddings = task({
@@ -13,7 +12,7 @@ export const generateCanvasEmbeddings = task({
     items: {
       id: string;
       text: string;
-      sourceType: VectorMetadata["sourceType"];
+      sourceType: string; // "comment" | "asset" | "region" | "shape_text"
     }[];
   }) => {
     const { canvasId, items } = payload;
@@ -42,16 +41,17 @@ export const generateCanvasEmbeddings = task({
             sourceType: item.sourceType,
             sourceId: item.id,
             text: cleanedText.substring(0, 1000), // Store truncated text for reference
+            userId: "",
             createdAt: new Date().toISOString(),
           },
         });
 
         // Store reference in database
-        await prisma.embedding.upsert({
+        await db.embedding.upsert({
           where: { pineconeId: vectorId },
           create: {
             pineconeId: vectorId,
-            sourceType: item.sourceType.toUpperCase() as any,
+            sourceType: item.sourceType.toUpperCase() as "COMMENT" | "ASSET" | "REGION" | "SHAPE_TEXT",
             sourceId: item.id,
             canvasId,
             text: cleanedText,
@@ -87,7 +87,7 @@ export const generateSingleEmbedding = task({
     canvasId: string;
     itemId: string;
     text: string;
-    sourceType: VectorMetadata["sourceType"];
+    sourceType: string; // "comment" | "asset" | "region" | "shape_text"
   }) => {
     const { canvasId, itemId, text, sourceType } = payload;
     
@@ -107,15 +107,16 @@ export const generateSingleEmbedding = task({
         sourceType,
         sourceId: itemId,
         text: cleanedText.substring(0, 1000),
+        userId: "",
         createdAt: new Date().toISOString(),
       },
     }]);
 
-    await prisma.embedding.upsert({
+    await db.embedding.upsert({
       where: { pineconeId: vectorId },
       create: {
         pineconeId: vectorId,
-        sourceType: sourceType.toUpperCase() as any,
+        sourceType: sourceType.toUpperCase() as "COMMENT" | "ASSET" | "REGION" | "SHAPE_TEXT",
         sourceId: itemId,
         canvasId,
         text: cleanedText,

@@ -1,6 +1,6 @@
 import { task, schedules } from "@trigger.dev/sdk/v3";
-import { prisma } from "@/lib/db";
-import { clusterContent, detectRegionTopic, synthesizeContent } from "@/lib/ai";
+import { db } from "@/lib/db";
+import { clusterContent, synthesizeContent } from "@/lib/ai";
 import { generateEmbedding } from "@/lib/embeddings";
 import { querySimilar } from "@/lib/pinecone";
 
@@ -14,7 +14,7 @@ export const analyzeCanvasRegions = task({
     console.log(`Analyzing regions for canvas ${canvasId}`);
 
     // Get all embeddings for this canvas
-    const embeddings = await prisma.embedding.findMany({
+    const embeddings = await db.embedding.findMany({
       where: { canvasId },
       select: { sourceId: true, text: true, sourceType: true },
     });
@@ -29,7 +29,7 @@ export const analyzeCanvasRegions = task({
 
     // Store cluster information in canvas regions
     for (const cluster of clusterResult.clusters) {
-      await prisma.canvasRegion.create({
+      await db.canvasRegion.create({
         data: {
           canvasId,
           x: 0, // Would be calculated from actual shape positions
@@ -59,7 +59,7 @@ export const calculateRegionDecay = task({
   run: async (payload: { canvasId: string }) => {
     const { canvasId } = payload;
     
-    const regions = await prisma.canvasRegion.findMany({
+    const regions = await db.canvasRegion.findMany({
       where: { canvasId },
     });
 
@@ -76,7 +76,7 @@ export const calculateRegionDecay = task({
       const newScore = Math.max(0.1, region.activityScore * Math.pow(0.9, daysSinceActivity));
 
       if (newScore !== region.activityScore) {
-        await prisma.canvasRegion.update({
+        await db.canvasRegion.update({
           where: { id: region.id },
           data: { activityScore: newScore },
         });
@@ -99,7 +99,7 @@ export const findSemanticConnections = task({
   run: async (payload: { canvasId: string }) => {
     const { canvasId } = payload;
     
-    const regions = await prisma.canvasRegion.findMany({
+    const regions = await db.canvasRegion.findMany({
       where: { canvasId },
       select: { id: true, label: true, summary: true, keywords: true },
     });
@@ -153,7 +153,7 @@ export const summarizeRegion = task({
     const result = await synthesizeContent(content);
 
     // Update the region with the summary
-    await prisma.canvasRegion.update({
+    await db.canvasRegion.update({
       where: { id: regionId },
       data: {
         summary: result.summary,
@@ -163,7 +163,7 @@ export const summarizeRegion = task({
     });
 
     // Log the AI request
-    await prisma.aIRequest.create({
+    await db.aIRequest.create({
       data: {
         canvasId,
         userId: "system",
@@ -195,7 +195,7 @@ export const nightShiftAnalysis = schedules.task({
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    const activeCanvases = await prisma.canvas.findMany({
+    const activeCanvases = await db.canvas.findMany({
       where: {
         updatedAt: { gte: sevenDaysAgo },
       },

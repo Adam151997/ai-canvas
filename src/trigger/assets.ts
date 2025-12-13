@@ -1,5 +1,5 @@
 import { task } from "@trigger.dev/sdk/v3";
-import { prisma } from "@/lib/db";
+import { db } from "@/lib/db";
 import { generateEmbedding, prepareTextForEmbedding, chunkText } from "@/lib/embeddings";
 import { upsertVectors, VectorMetadata } from "@/lib/pinecone";
 import { put } from "@vercel/blob";
@@ -45,7 +45,7 @@ export const processAsset = task({
     console.log(`Processing asset ${assetId} (${mimeType})`);
 
     // Update status to processing
-    await prisma.asset.update({
+    await db.asset.update({
       where: { id: assetId },
       data: { status: "PROCESSING" },
     });
@@ -53,7 +53,7 @@ export const processAsset = task({
     try {
       let extractedText = "";
       let thumbnailUrl: string | null = null;
-      let metadata: Record<string, any> = {};
+      let metadata: Record<string, unknown> = {};
 
       // Fetch the file
       const response = await fetch(url);
@@ -148,6 +148,7 @@ export const processAsset = task({
                 sourceType: "asset",
                 sourceId: assetId,
                 text: cleanedText.substring(0, 1000),
+                userId: "",
                 createdAt: new Date().toISOString(),
               },
             });
@@ -163,7 +164,7 @@ export const processAsset = task({
           
           // Track embeddings in database
           for (const vector of vectors) {
-            await prisma.embedding.upsert({
+            await db.embedding.upsert({
               where: { pineconeId: vector.id },
               update: { updatedAt: new Date() },
               create: {
@@ -179,7 +180,7 @@ export const processAsset = task({
       }
 
       // Update asset with results
-      await prisma.asset.update({
+      await db.asset.update({
         where: { id: assetId },
         data: {
           status: "COMPLETED",
@@ -191,10 +192,10 @@ export const processAsset = task({
       });
 
       // Log activity
-      await prisma.activity.create({
+      await db.activity.create({
         data: {
           canvasId,
-          userId: (await prisma.asset.findUnique({ where: { id: assetId } }))?.uploaderId || "system",
+          userId: (await db.asset.findUnique({ where: { id: assetId } }))?.uploaderId || "system",
           type: "ASSET_UPLOADED",
           data: {
             assetId,
@@ -217,7 +218,7 @@ export const processAsset = task({
     } catch (error) {
       console.error(`Failed to process asset ${assetId}:`, error);
 
-      await prisma.asset.update({
+      await db.asset.update({
         where: { id: assetId },
         data: { 
           status: "FAILED",
@@ -238,7 +239,7 @@ export const reprocessFailedAssets = task({
     const { canvasId } = payload;
 
     // Find failed assets
-    const failedAssets = await prisma.asset.findMany({
+    const failedAssets = await db.asset.findMany({
       where: {
         status: "FAILED",
         ...(canvasId ? { canvasId } : {}),
@@ -289,7 +290,7 @@ export const cleanupOrphanedAssets = task({
     // This would be orphaned assets
     // For now, just log what would be deleted
 
-    const assetsToCleanup = await prisma.asset.findMany({
+    const assetsToCleanup = await db.asset.findMany({
       where: {
         createdAt: {
           lt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), // Older than 7 days
