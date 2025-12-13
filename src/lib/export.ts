@@ -23,24 +23,21 @@ export async function exportToPNG(editor: Editor): Promise<Blob | null> {
   }
 }
 
-// Export canvas as SVG
-export async function exportToSVG(editor: Editor): Promise<string | null> {
+// Export canvas as SVG (using toImage with svg format)
+export async function exportToSVG(editor: Editor): Promise<Blob | null> {
   try {
     const shapeIds = editor.getCurrentPageShapeIds();
     if (shapeIds.size === 0) {
       throw new Error("No shapes to export");
     }
 
-    const svg = await editor.toSvg([...shapeIds], {
+    const result = await editor.toImage([...shapeIds], {
+      format: "svg",
       background: true,
       padding: 32,
     });
 
-    // toSvg returns SVGSVGElement in tldraw 3.x
-    if (svg && typeof svg === 'object' && 'outerHTML' in svg) {
-      return svg.outerHTML;
-    }
-    return null;
+    return result?.blob || null;
   } catch (error) {
     console.error("Export to SVG failed:", error);
     return null;
