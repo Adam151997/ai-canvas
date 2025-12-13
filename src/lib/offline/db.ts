@@ -110,12 +110,14 @@ export const offlineCanvasOps = {
 export const mutationQueue = {
   // Add mutation to queue
   async add(mutation: Omit<OfflineMutation, "id" | "createdAt" | "retries" | "status">): Promise<number> {
-    return db.mutations.add({
+    const id = await db.mutations.add({
       ...mutation,
       createdAt: Date.now(),
       retries: 0,
       status: "PENDING",
     });
+    // Auto-increment always returns a number, but Dexie types it as possibly undefined
+    return id as number;
   },
 
   // Get pending mutations
