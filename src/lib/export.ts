@@ -8,14 +8,15 @@ export async function exportToPNG(editor: Editor): Promise<Blob | null> {
       throw new Error("No shapes to export");
     }
 
-    const blob = await editor.toImage([...shapeIds], {
+    const result = await editor.toImage([...shapeIds], {
       format: "png",
       background: true,
       padding: 32,
       scale: 2,
     });
 
-    return blob;
+    // toImage returns { blob, height, width } in tldraw 3.x
+    return result?.blob || null;
   } catch (error) {
     console.error("Export to PNG failed:", error);
     return null;
@@ -35,7 +36,11 @@ export async function exportToSVG(editor: Editor): Promise<string | null> {
       padding: 32,
     });
 
-    return svg?.outerHTML || null;
+    // toSvg returns SVGSVGElement in tldraw 3.x
+    if (svg && typeof svg === 'object' && 'outerHTML' in svg) {
+      return svg.outerHTML;
+    }
+    return null;
   } catch (error) {
     console.error("Export to SVG failed:", error);
     return null;
@@ -53,11 +58,11 @@ export function exportToMarkdown(editor: Editor): string {
   lines.push("");
 
   // Group shapes by type
-  const textShapes: any[] = [];
-  const noteShapes: any[] = [];
-  const geoShapes: any[] = [];
-  const arrowShapes: any[] = [];
-  const otherShapes: any[] = [];
+  const textShapes: unknown[] = [];
+  const noteShapes: unknown[] = [];
+  const geoShapes: unknown[] = [];
+  const arrowShapes: unknown[] = [];
+  const otherShapes: unknown[] = [];
 
   for (const shape of shapes) {
     switch (shape.type) {
@@ -83,7 +88,7 @@ export function exportToMarkdown(editor: Editor): string {
     lines.push("## Notes");
     lines.push("");
     for (const shape of noteShapes) {
-      const text = (shape.props as any)?.text;
+      const text = (shape as { props?: { text?: string } })?.props?.text;
       if (text) {
         lines.push(`- ${text}`);
       }
@@ -96,7 +101,7 @@ export function exportToMarkdown(editor: Editor): string {
     lines.push("## Text");
     lines.push("");
     for (const shape of textShapes) {
-      const text = (shape.props as any)?.text;
+      const text = (shape as { props?: { text?: string } })?.props?.text;
       if (text) {
         lines.push(text);
         lines.push("");
@@ -105,25 +110,25 @@ export function exportToMarkdown(editor: Editor): string {
   }
 
   // Export geo shapes with text
-  const geoWithText = geoShapes.filter((s) => (s.props as any)?.text);
+  const geoWithText = geoShapes.filter((s) => (s as { props?: { text?: string } })?.props?.text);
   if (geoWithText.length > 0) {
     lines.push("## Shapes");
     lines.push("");
     for (const shape of geoWithText) {
-      const text = (shape.props as any)?.text;
-      const geoType = (shape.props as any)?.geo || "shape";
+      const text = (shape as { props?: { text?: string } })?.props?.text;
+      const geoType = (shape as { props?: { geo?: string } })?.props?.geo || "shape";
       lines.push(`- **[${geoType}]** ${text}`);
     }
     lines.push("");
   }
 
   // Export arrows with labels
-  const arrowsWithText = arrowShapes.filter((s) => (s.props as any)?.text);
+  const arrowsWithText = arrowShapes.filter((s) => (s as { props?: { text?: string } })?.props?.text);
   if (arrowsWithText.length > 0) {
     lines.push("## Connections");
     lines.push("");
     for (const shape of arrowsWithText) {
-      const text = (shape.props as any)?.text;
+      const text = (shape as { props?: { text?: string } })?.props?.text;
       lines.push(`- → ${text}`);
     }
     lines.push("");
