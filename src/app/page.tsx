@@ -1,12 +1,12 @@
-import { auth } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth-utils";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 
 export default async function HomePage() {
-  const { userId } = await auth();
+  const user = await getCurrentUser();
 
   // If user is logged in, redirect to canvas dashboard
-  if (userId) {
+  if (user) {
     redirect("/canvas");
   }
 

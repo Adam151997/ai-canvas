@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { currentUser } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth-utils";
 import { db } from "@/lib/db";
 import { Prisma } from "@prisma/client";
 
@@ -8,7 +8,7 @@ export async function GET(
   req: Request,
   { params }: { params: Promise<{ canvasId: string }> }
 ) {
-  const user = await currentUser();
+  const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -59,7 +59,7 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ canvasId: string }> }
 ) {
-  const user = await currentUser();
+  const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -137,7 +137,7 @@ export async function PUT(
   req: Request,
   { params }: { params: Promise<{ canvasId: string }> }
 ) {
-  const user = await currentUser();
+  const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

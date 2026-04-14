@@ -1,5 +1,5 @@
 import { Liveblocks } from "@liveblocks/node";
-import { currentUser } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth-utils";
 import { NextRequest, NextResponse } from "next/server";
 
 const liveblocks = new Liveblocks({
@@ -8,7 +8,7 @@ const liveblocks = new Liveblocks({
 
 export async function POST(request: NextRequest) {
   // Get the current user from Clerk
-  const user = await currentUser();
+  const user = await getCurrentUser();
 
   if (!user) {
     return NextResponse.json(

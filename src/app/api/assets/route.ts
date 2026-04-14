@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { currentUser } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth-utils";
 import { del } from "@vercel/blob";
 import { db } from "@/lib/db";
 
 // GET /api/assets - List assets for a canvas
 export async function GET(req: Request) {
-  const user = await currentUser();
+  const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -85,7 +85,7 @@ export async function GET(req: Request) {
 
 // DELETE /api/assets - Delete an asset
 export async function DELETE(req: Request) {
-  const user = await currentUser();
+  const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
