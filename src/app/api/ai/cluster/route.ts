@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { currentUser } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth-utils";
 import { clusterContent } from "@/lib/ai";
 import * as Sentry from "@sentry/nextjs";
 import { 
@@ -13,7 +13,7 @@ import { logAIRequest } from "@/lib/ai-observability";
 
 // POST /api/ai/cluster - Cluster content semantically
 export async function POST(req: Request) {
-  const user = await currentUser();
+  const user = await getCurrentUser();
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

@@ -1,6 +1,6 @@
 "use client";
 
-import { UserButton } from "@clerk/nextjs";
+import { UserButton } from "@/components/user-button";
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme";
 

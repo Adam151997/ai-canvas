@@ -1,6 +1,6 @@
 import { google } from "@ai-sdk/google";
 import { streamText } from "ai";
-import { currentUser } from "@clerk/nextjs/server";
+import { getCurrentUser } from "@/lib/auth-utils";
 import { NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { 
@@ -16,7 +16,7 @@ import { logAIRequest } from "@/lib/ai-observability";
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-  const user = await currentUser();
+  const user = await getCurrentUser();
 
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
