@@ -1,10 +1,5 @@
-import { Liveblocks } from "@liveblocks/node";
 import { getCurrentUser } from "@/lib/auth-utils";
 import { NextRequest, NextResponse } from "next/server";
-
-const liveblocks = new Liveblocks({
-  secret: process.env.LIVEBLOCKS_SECRET_KEY!,
-});
 
 export async function POST(request: NextRequest) {
   // Get the current user from Clerk

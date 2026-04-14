@@ -1,16 +1,6 @@
-import { Pinecone } from "@pinecone-database/pinecone";
+// Pinecone vector database has been removed
+// This file is kept as a placeholder for future vector database implementation
 
-// Initialize Pinecone client
-const pinecone = new Pinecone({
-  apiKey: process.env.PINECONE_API_KEY!,
-});
-
-// Get the index
-export const getIndex = () => {
-  return pinecone.index(process.env.PINECONE_INDEX_NAME || "ai-canvas");
-};
-
-// Types for vector operations
 export interface VectorMetadata {
   canvasId: string;
   sourceType: string; // "comment" | "asset" | "region" | "shape_text"
@@ -18,10 +8,10 @@ export interface VectorMetadata {
   text: string;
   userId: string;
   createdAt: string;
-  [key: string]: string; // Index signature for Pinecone compatibility
+  [key: string]: string;
 }
 
-// Upsert vectors to Pinecone
+// Upsert vectors to Pinecone (placeholder)
 export async function upsertVectors(
   vectors: {
     id: string;
@@ -29,17 +19,11 @@ export async function upsertVectors(
     metadata: VectorMetadata;
   }[]
 ) {
-  const index = getIndex();
-  
-  // Pinecone recommends batches of 100
-  const batchSize = 100;
-  for (let i = 0; i < vectors.length; i += batchSize) {
-    const batch = vectors.slice(i, i + batchSize);
-    await index.upsert(batch);
-  }
+  console.warn("Pinecone vector database has been removed. Vectors cannot be stored.");
+  return;
 }
 
-// Query similar vectors
+// Query similar vectors (placeholder)
 export async function querySimilar(
   embedding: number[],
   options: {
@@ -48,45 +32,21 @@ export async function querySimilar(
     topK?: number;
   } = {}
 ) {
-  const index = getIndex();
-  
-  const filter: Record<string, string> = {};
-  if (options.canvasId) {
-    filter.canvasId = options.canvasId;
-  }
-  if (options.sourceType) {
-    filter.sourceType = options.sourceType;
-  }
-
-  const results = await index.query({
-    vector: embedding,
-    topK: options.topK || 10,
-    includeMetadata: true,
-    filter: Object.keys(filter).length > 0 ? filter : undefined,
-  });
-
-  return results.matches || [];
+  console.warn("Pinecone vector database has been removed. Semantic search is disabled.");
+  return [];
 }
 
-// Delete vectors by filter
+// Delete vectors by filter (placeholder)
 export async function deleteVectors(filter: {
   canvasId?: string;
   sourceId?: string;
 }) {
-  const index = getIndex();
-  
-  if (filter.sourceId) {
-    await index.deleteOne(filter.sourceId);
-  } else if (filter.canvasId) {
-    // Delete all vectors for a canvas
-    await index.deleteMany({ canvasId: filter.canvasId });
-  }
+  console.warn("Pinecone vector database has been removed. Vectors cannot be deleted.");
+  return;
 }
 
-// Delete all vectors for a canvas
+// Delete all vectors for a canvas (placeholder)
 export async function deleteCanvasVectors(canvasId: string) {
-  const index = getIndex();
-  await index.deleteMany({ canvasId });
+  console.warn("Pinecone vector database has been removed. Vectors cannot be deleted.");
+  return;
 }
-
-export { pinecone };
