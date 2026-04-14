@@ -1,107 +1,96 @@
-import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
+// Upstash Redis rate limiting has been removed
+// This file provides placeholder rate limiting functions
 
-// Initialize Redis client
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-});
+// Rate limiters for different features (placeholder implementation)
 
-// Rate limiters for different features
-// Using sliding window algorithm for smooth rate limiting
+// General API rate limit: 100 requests per minute (placeholder)
+export const generalRateLimit = {
+  limit: async (identifier: string) => ({
+    success: true,
+    limit: 100,
+    remaining: 99,
+    reset: Date.now() + 60000,
+  }),
+};
 
-// General API rate limit: 100 requests per minute
-export const generalRateLimit = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(100, "1 m"),
-  analytics: true,
-  prefix: "ratelimit:general",
-});
+// AI Synthesize: 20 requests per minute (placeholder)
+export const synthesizeRateLimit = {
+  limit: async (identifier: string) => ({
+    success: true,
+    limit: 20,
+    remaining: 19,
+    reset: Date.now() + 60000,
+  }),
+};
 
-// AI Synthesize: 20 requests per minute (expensive operation)
-export const synthesizeRateLimit = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(20, "1 m"),
-  analytics: true,
-  prefix: "ratelimit:synthesize",
-});
+// AI Cluster: 15 requests per minute (placeholder)
+export const clusterRateLimit = {
+  limit: async (identifier: string) => ({
+    success: true,
+    limit: 15,
+    remaining: 14,
+    reset: Date.now() + 60000,
+  }),
+};
 
-// AI Cluster: 15 requests per minute
-export const clusterRateLimit = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(15, "1 m"),
-  analytics: true,
-  prefix: "ratelimit:cluster",
-});
+// AI Search: 30 requests per minute (placeholder)
+export const searchRateLimit = {
+  limit: async (identifier: string) => ({
+    success: true,
+    limit: 30,
+    remaining: 29,
+    reset: Date.now() + 60000,
+  }),
+};
 
-// AI Search: 30 requests per minute
-export const searchRateLimit = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(30, "1 m"),
-  analytics: true,
-  prefix: "ratelimit:search",
-});
+// Embedding generation: 50 requests per minute (placeholder)
+export const embeddingRateLimit = {
+  limit: async (identifier: string) => ({
+    success: true,
+    limit: 50,
+    remaining: 49,
+    reset: Date.now() + 60000,
+  }),
+};
 
-// Embedding generation: 50 requests per minute
-export const embeddingRateLimit = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(50, "1 m"),
-  analytics: true,
-  prefix: "ratelimit:embedding",
-});
+// Canvas operations: 200 requests per minute (placeholder)
+export const canvasRateLimit = {
+  limit: async (identifier: string) => ({
+    success: true,
+    limit: 200,
+    remaining: 199,
+    reset: Date.now() + 60000,
+  }),
+};
 
-// Canvas operations: 200 requests per minute
-export const canvasRateLimit = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(200, "1 m"),
-  analytics: true,
-  prefix: "ratelimit:canvas",
-});
+// Daily AI limit: 500 requests per day (placeholder)
+export const dailyAILimit = {
+  limit: async (identifier: string) => ({
+    success: true,
+    limit: 500,
+    remaining: 499,
+    reset: Date.now() + 24 * 60 * 60 * 1000,
+  }),
+};
 
-// Daily limits for expensive AI operations
-export const dailyAILimit = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(500, "24 h"),
-  analytics: true,
-  prefix: "ratelimit:daily-ai",
-});
+// Check rate limit (placeholder)
+export async function checkRateLimit(limiter: any, identifier: string) {
+  console.warn("Rate limiting is disabled (Upstash Redis removed).");
+  return await limiter.limit(identifier);
+}
 
-// Helper function to check rate limit
-export async function checkRateLimit(
-  limiter: Ratelimit,
-  identifier: string
-): Promise<{
-  success: boolean;
-  limit: number;
-  remaining: number;
-  reset: number;
-}> {
-  const result = await limiter.limit(identifier);
-  
+// Get rate limit headers (placeholder)
+export function getRateLimitHeaders(limitResult: any) {
   return {
-    success: result.success,
-    limit: result.limit,
-    remaining: result.remaining,
-    reset: result.reset,
+    "X-RateLimit-Limit": limitResult.limit.toString(),
+    "X-RateLimit-Remaining": limitResult.remaining.toString(),
+    "X-RateLimit-Reset": limitResult.reset.toString(),
   };
 }
 
-// Get rate limit headers for response
-export function getRateLimitHeaders(result: {
-  limit: number;
-  remaining: number;
-  reset: number;
-}): Record<string, string> {
-  return {
-    "X-RateLimit-Limit": result.limit.toString(),
-    "X-RateLimit-Remaining": result.remaining.toString(),
-    "X-RateLimit-Reset": result.reset.toString(),
-  };
-}
-
-// Rate limit error response
-export function rateLimitResponse(reset: number) {
-  const retryAfter = Math.ceil((reset - Date.now()) / 1000);
+// Rate limit response (placeholder)
+export function rateLimitResponse(resetTime: number) {
+  const retryAfter = Math.ceil((resetTime - Date.now()) / 1000);
   
   return new Response(
     JSON.stringify({

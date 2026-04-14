@@ -139,21 +139,9 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: "Permission denied" }, { status: 403 });
     }
 
-    // Delete from Vercel Blob
-    if (asset.url) {
-      try {
-        await del(asset.url);
-      } catch (e) {
-        console.warn("Failed to delete blob:", e);
-      }
-    }
-
-    if (asset.thumbnailUrl) {
-      try {
-        await del(asset.thumbnailUrl);
-      } catch (e) {
-        console.warn("Failed to delete thumbnail blob:", e);
-      }
+    // Vercel Blob has been removed, just log warning
+    if (asset.url || asset.thumbnailUrl) {
+      console.warn("Vercel Blob storage removed. Files cannot be deleted from storage.");
     }
 
     // Delete from database
